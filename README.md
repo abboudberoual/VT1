@@ -9,6 +9,10 @@ VT-1 is two things:
 
 ## Try it
 
+**Live app:** https://abboudberoual.github.io/VT1/ — open it in Chrome or Edge (desktop) or Chrome (Android), wake your trainer by pedalling, and click **Connect trainer**. No trainer? Click **Try demo mode**.
+
+Run it locally:
+
 ```bash
 npm install
 npm run dev      # http://localhost:5173
@@ -32,7 +36,7 @@ Click **Try demo mode**, or **Connect trainer** with any trainer that supports B
 - [x] FTMS control verified on an Elite Tuo (web prototype)
 - [x] Hardware case printed (VT-1 Solo)
 - [ ] Firmware bench test
-- [ ] Web app on GitHub Pages
+- [x] Web app on GitHub Pages
 - [ ] Tacx FE-C and power-meter support
 - [ ] Browser extension
 
