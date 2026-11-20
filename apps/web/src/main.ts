@@ -31,13 +31,19 @@ function render() {
   const m = MODES[state.mode], v = state.values[state.mode];
   document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) =>
     b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
-  $('status').textContent = connected ? `${state.trainer!.name.toUpperCase()} · ${state.trainer!.protocol}` : 'NO TRAINER';
-  $('label').textContent = !connected ? 'NO TRAINER' : state.hold ? 'ON HOLD' : ({ erg: 'TARGET', res: 'RESISTANCE', slope: 'GRADE' })[state.mode];
-  $('value').textContent = connected ? fmt(state.mode, v) : '—';
+  const status = $('status');
+  status.innerHTML = `<span class="dot"></span>${connected ? `${escapeHtml(state.trainer!.name.toUpperCase())} · ${state.trainer!.protocol}` : 'NOT CONNECTED'}`;
+  status.classList.toggle('off', !connected);
+  status.title = connected ? 'Disconnect' : '';
+  $('empty').hidden = connected;
+  $('live').hidden = !connected;
+  $('readouts').hidden = !connected;
+  $('label').textContent = state.hold ? 'ON HOLD' : ({ erg: 'TARGET', res: 'RESISTANCE', slope: 'GRADE' })[state.mode];
+  $('value').textContent = fmt(state.mode, v);
   $('value').style.color = state.hold ? '#5B6068' : '';
-  $('unit').textContent = connected ? ({ erg: 'watts', res: 'percent', slope: 'percent grade' })[state.mode] : 'not connected';
-  $('live').textContent = connected ? `${state.live} W live` : '';
-  $('power').textContent = connected ? `${state.live} W` : '—';
+  $('unit').textContent = ({ erg: 'watts', res: 'percent', slope: 'percent grade' })[state.mode];
+  $('liveLine').textContent = `${state.live} W live`;
+  $('power').textContent = `${state.live} W`;
   $('step').textContent = `STEP ±${m.step} ${m.unit}`;
   $('hold').textContent = state.hold ? 'RESUME' : 'HOLD';
   $('hold').setAttribute('aria-pressed', String(state.hold));
@@ -54,9 +60,32 @@ function render() {
   marker.setAttribute('r', connected && state.mode === 'erg' ? '6' : '0');
 }
 
+function escapeHtml(t: string) {
+  return t.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+/** Turn browser and Bluetooth errors into something a rider can act on. */
+function friendlyError(e: unknown): string {
+  const name = e instanceof DOMException ? e.name : '';
+  const msg = e instanceof Error ? e.message : String(e);
+  if (name === 'NotFoundError' && /cancel/i.test(msg)) return 'No trainer selected. Pedal to wake it up, then try again.';
+  if (name === 'NotFoundError') return 'No trainer found. Make sure it is powered, nearby and not connected to another app.';
+  if (name === 'SecurityError') return 'Bluetooth is blocked on this page. Check your browser’s site permissions.';
+  if (name === 'NetworkError') return 'The trainer dropped the connection. Pedal to wake it and try again.';
+  if (/another app/i.test(msg)) return msg;
+  return `Couldn’t connect: ${msg}`;
+}
+
 function showError(e: unknown) {
-  $('note').textContent = e instanceof Error ? e.message : String(e);
-  $('connect').hidden = false;
+  const el = $('error');
+  el.textContent = friendlyError(e);
+  el.hidden = false;
+  state.trainer = null;
+  render();
+}
+
+function clearError() {
+  $('error').hidden = true;
 }
 
 function onConnected(t: Trainer) {
@@ -72,9 +101,24 @@ const onData = (d: { powerW?: number; cadenceRpm?: number }) => {
   render();
 };
 
-$('connectBtn').onclick = () =>
-  connectFtms(onData, () => { state.trainer = null; render(); }).then(onConnected).catch(showError);
-$('demoBtn').onclick = () => onConnected(connectDemo(onData));
+const connectBtn = $<HTMLButtonElement>('connectBtn');
+connectBtn.onclick = () => {
+  clearError();
+  connectBtn.disabled = true;
+  connectBtn.textContent = 'Connecting…';
+  connectFtms(onData, () => { state.trainer = null; render(); })
+    .then(onConnected)
+    .catch(showError)
+    .finally(() => { connectBtn.disabled = !navigator.bluetooth; connectBtn.textContent = 'Connect trainer'; });
+};
+$('demoBtn').onclick = () => { clearError(); onConnected(connectDemo(onData)); };
+
+if (!navigator.bluetooth) {
+  connectBtn.disabled = true;
+  $('emptyTitle').textContent = 'Bluetooth isn’t available here';
+  $('note').hidden = true;
+  $('emptyText').textContent = 'Open this page in Chrome or Edge on a computer, or Chrome on Android. Demo mode works anywhere.';
+}
 $('status').onclick = () => { state.trainer?.disconnect(); state.trainer = null; render(); };
 document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => (b.onclick = () => {
   state.mode = b.dataset.mode as Mode; state.hold = false; render(); scheduleSend();

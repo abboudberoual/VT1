@@ -13,7 +13,7 @@ main { max-width:520px; margin:0 auto; padding:16px 24px 48px; display:flex; fle
 .seg button { flex:1; height:44px; border:0; border-radius:10px; background:transparent; color:var(--dim); font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; letter-spacing:.1em; }
 .seg button[aria-pressed="true"] { background:var(--text); color:var(--bg); }
 .ring { position:relative; width:100%; max-width:440px; aspect-ratio:1; align-self:center; }
-.ring svg { width:100%; height:100%; display:block; }
+.ring > svg { width:100%; height:100%; display:block; }
 .ring circle.track, .ring circle.arc { fill:none; stroke-width:8; stroke-linecap:round; }
 .track { stroke:#24262A; } .arc { stroke:var(--accent); transition:stroke-dasharray .25s; }
 .marker { fill:var(--text); stroke:var(--bg); stroke-width:3; }
@@ -29,3 +29,13 @@ main { max-width:520px; margin:0 auto; padding:16px 24px 48px; display:flex; fle
 .stepbtn { flex:1; height:72px; border:1px solid var(--line); border-radius:16px; background:var(--surface); font-size:30px; }
 .primary { height:64px; border:0; border-radius:16px; background:var(--text); color:var(--bg); font-size:17px; font-weight:600; }
 .ghost { height:52px; border:1px solid var(--line); border-radius:14px; background:transparent; font-size:15px; }
+
+.empty { gap:10px; padding:0 18%; text-align:center; }
+.empty .bt { color:var(--dim); margin-bottom:6px; }
+.empty h1 { margin:0; font-size:clamp(22px,5vw,28px); font-weight:600; letter-spacing:-.02em; }
+.empty p { margin:0; font-size:15px; line-height:1.5; }
+.chip .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:10px; vertical-align:1px; background:var(--text); }
+.chip.off { color:var(--dim); }
+.chip.off .dot { background:transparent; border:1.5px solid var(--dim); box-sizing:border-box; }
+.error { margin:0; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:14px; line-height:1.5; text-align:center; }
+.primary:disabled { opacity:.5; cursor:default; }

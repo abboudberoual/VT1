@@ -26,14 +26,19 @@
         <circle id="arc" class="arc" cx="160" cy="160" r="148" stroke-dasharray="0 929.91" transform="rotate(135 160 160)"/>
         <circle id="marker" class="marker" cx="0" cy="0" r="0"/>
       </svg>
-      <div class="center">
+      <div id="empty" class="center empty">
+        <svg class="bt" width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10-5 5V2l5 5L7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h1 id="emptyTitle">No trainer connected</h1>
+        <p id="emptyText" class="dim">Pedal for a few seconds to wake your trainer, then connect.</p>
+      </div>
+      <div id="live" class="center">
         <span id="label" class="mono dim">TARGET</span>
         <span id="value" class="big">—</span>
         <span id="unit" class="dim">watts</span>
-        <span id="live" class="mono live"></span>
+        <span id="liveLine" class="mono live"></span>
       </div>
     </div>
-    <div class="readouts">
+    <div id="readouts" class="readouts">
       <div><span class="mono dim">POWER</span><span id="power">—</span></div>
       <div><span class="mono dim">CADENCE</span><span id="cadence">—</span></div>
       <div><span class="mono dim">TIME</span><span id="time">00:00</span></div>
@@ -48,7 +53,8 @@
     <div id="connect" class="connect">
       <button id="connectBtn" class="primary" type="button">Connect trainer</button>
       <button id="demoBtn" class="ghost" type="button">Try demo mode</button>
-      <p id="note" class="dim small">Wake the trainer by pedalling. Works in Chrome and Edge on desktop, and Chrome on Android.</p>
+      <p id="error" class="error" role="status" hidden></p>
+      <p id="note" class="dim small">Works with Bluetooth FTMS trainers in Chrome or Edge on desktop, and Chrome on Android.</p>
     </div>
   </main>
   <script type="module" src="./src/main.ts"></script>
