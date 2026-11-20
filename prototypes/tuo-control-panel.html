@@ -1,0 +1,584 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Tuo Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:wght@400;700&display=swap">
+<style>
+/* Layout: one enamel instrument plate. Wattmeter + digital windows + strip recorder on the left, command block on the right; stacks on phones with the command block above the recorder. Single committed look (Soyuz-era panel), so no dark variant. */
+:root{
+  --panel:#aab7b3;      /* grey-green enamel */
+  --panel-hi:#c0cbc7;
+  --panel-lo:#8a9894;
+  --ink:#1d2622;        /* engraved labels */
+  --bezel:#151917;
+  --face:#1c211e;       /* instrument faces */
+  --mark:#ede5cd;       /* luminous dial markings */
+  --amber:#f2a131;
+  --green:#9ed873;
+  --red:#e2553f;
+  --glass:#0c0f0d;
+  --f-label:"PT Sans Narrow","Arial Narrow",Arial,sans-serif;
+  --f-mono:"PT Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-body:"PT Sans",system-ui,sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:
+    radial-gradient(120% 80% at 30% 0%, var(--panel-hi), transparent 60%),
+    var(--panel);
+  color:var(--ink);
+  font-family:var(--f-body);
+  padding-inline:16px;
+  padding-block:16px 24px;
+}
+.plate{
+  max-width:1080px;margin:0 auto;
+  border:2px solid var(--panel-lo);
+  border-radius:6px;
+  padding:14px;
+  position:relative;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px),
+    var(--panel);
+  box-shadow: inset 0 1px 0 var(--panel-hi), 0 2px 0 var(--panel-lo);
+}
+.screw{position:absolute;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, var(--panel-hi), var(--panel-lo) 70%);
+  box-shadow:inset 0 0 0 1px var(--panel-lo)}
+.screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:var(--panel-lo);transform:rotate(35deg)}
+.screw.tl{top:6px;left:6px}.screw.tr{top:6px;right:6px}.screw.bl{bottom:6px;left:6px}.screw.br{bottom:6px;right:6px}
+
+.nameplate{
+  display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;
+  padding:6px 18px 10px;border-bottom:1px solid var(--panel-lo);margin-bottom:12px;
+}
+.nameplate h1{
+  margin:0;font-family:var(--f-label);font-weight:700;font-size:clamp(20px,4.6vw,30px);
+  letter-spacing:.06em;text-transform:uppercase;text-wrap:balance;line-height:1.05;
+}
+.nameplate h1 small{display:block;font-size:.5em;letter-spacing:.18em;font-weight:400;opacity:.75}
+.serial{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;opacity:.7}
+
+.label{font-family:var(--f-label);text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;line-height:1.1}
+.label span{display:block;font-weight:400;opacity:.7;letter-spacing:.14em}
+
+/* annunciator lamps */
+.lamps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.lamp{
+  background:var(--glass);border:2px solid var(--bezel);border-radius:3px;
+  min-height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  font-family:var(--f-label);font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  font-size:12px;color:#4a514d;text-align:center;line-height:1.1;padding:4px 2px;
+  transition:color .2s, background .2s, box-shadow .2s;
+}
+.lamp i{font-style:normal;font-weight:400;font-size:10px;letter-spacing:.12em}
+.lamp.on.g{color:#14200c;background:var(--green);box-shadow:0 0 14px rgba(158,216,115,.55), inset 0 0 8px rgba(255,255,255,.4)}
+.lamp.on.a{color:#2a1700;background:var(--amber);box-shadow:0 0 14px rgba(242,161,49,.55), inset 0 0 8px rgba(255,255,255,.4)}
+.lamp.on.r{color:#2a0700;background:var(--red);box-shadow:0 0 14px rgba(226,85,63,.55), inset 0 0 8px rgba(255,255,255,.35)}
+@media (max-width:560px){.lamps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+.deck{
+  display:grid;gap:14px;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+  grid-template-areas:"gauge command" "read command" "rec rec";
+}
+@media (max-width:860px){
+  .deck{grid-template-columns:minmax(0,1fr);grid-template-areas:"gauge" "read" "command" "rec"}
+}
+.inst{
+  background:var(--bezel);border-radius:8px;padding:10px;
+  box-shadow: 0 1px 0 var(--panel-hi), inset 0 0 0 1px #2a302d;
+  min-width:0;
+}
+.inst .cap{display:flex;justify-content:space-between;align-items:baseline;color:var(--mark);padding:2px 4px 8px;gap:8px}
+.inst .cap .label span{opacity:.6}
+.gauge{grid-area:gauge}
+.gauge canvas{display:block;width:100%;max-width:440px;aspect-ratio:1/1;margin:0 auto}
+
+.read{grid-area:read;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.read{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.win{background:var(--bezel);border-radius:6px;padding:8px 8px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.win .label{color:var(--mark)}
+.digits{
+  position:relative;background:var(--glass);border-radius:3px;padding:6px 8px;
+  font-family:var(--f-mono);font-size:clamp(22px,4.4vw,30px);line-height:1;text-align:right;
+  color:var(--amber);text-shadow:0 0 8px rgba(242,161,49,.55);
+  font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;
+}
+.digits::before{content:attr(data-ghost);position:absolute;right:8px;top:6px;color:var(--amber);opacity:.07;text-shadow:none}
+.digits.t{font-size:clamp(18px,3.6vw,24px);padding-block:9px}
+
+.rec{grid-area:rec}
+.rec canvas{display:block;width:100%;height:170px;border-radius:3px}
+
+/* command block */
+.command{grid-area:command;display:flex;flex-direction:column;gap:14px;
+  border:1px solid var(--panel-lo);border-radius:8px;padding:14px;background:rgba(255,255,255,.05)}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.key{
+  appearance:none;border:0;cursor:pointer;color:var(--mark);
+  background:linear-gradient(#2b312e,#1a1f1c);border-radius:5px;
+  padding:10px 4px 9px;min-height:62px;
+  box-shadow:0 3px 0 #0b0d0c, inset 0 1px 0 #3d4541;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-family:var(--f-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;
+  transition:transform .06s, box-shadow .06s;
+}
+.key i{font-style:normal;font-weight:400;font-size:11px;opacity:.7}
+.key::before{content:"";width:22px;height:6px;border-radius:2px;background:#3b3f37;box-shadow:inset 0 1px 1px #000}
+.key[aria-pressed="true"]::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.key:active,.key[aria-pressed="true"]{transform:translateY(2px);box-shadow:0 1px 0 #0b0d0c, inset 0 1px 0 #3d4541}
+.key:focus-visible,.knob:focus-visible,.btn:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+
+.setpoint{background:var(--bezel);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.setpoint .label{color:var(--mark)}
+.setpoint .digits{font-size:clamp(40px,9vw,56px);padding:10px 12px;color:var(--green);text-shadow:0 0 10px rgba(158,216,115,.5)}
+.setpoint .digits::before{color:var(--green);top:10px;right:12px}
+.setpoint .digits .u{font-size:.42em;margin-left:6px;opacity:.85}
+.range{font-family:var(--f-mono);font-size:11px;color:var(--mark);opacity:.6;display:flex;justify-content:space-between}
+
+.dial{display:flex;align-items:center;justify-content:center;gap:18px}
+.knob-wrap{position:relative;width:150px;height:150px;flex:none}
+.knob-wrap::before{ /* engraved scale ring */
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(var(--ink) 0 1.2deg, transparent 1.2deg 15deg);
+  -webkit-mask:radial-gradient(circle, transparent 66px, #000 67px, #000 74px, transparent 75px);
+          mask:radial-gradient(circle, transparent 66px, #000 67px, #000 74px, transparent 75px);
+  opacity:.75;
+}
+.knob{
+  position:absolute;inset:14px;border-radius:50%;cursor:grab;touch-action:none;
+  background:
+    radial-gradient(circle at 40% 35%, #4a524e 0, #222825 55%, #121513 100%);
+  box-shadow:0 5px 10px rgba(0,0,0,.45), inset 0 0 0 7px #1a1e1c, inset 0 0 0 8px #3a423e;
+}
+.knob::before{ /* knurled skirt */
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(#2e3532 0 4deg,#161a18 4deg 8deg);
+  -webkit-mask:radial-gradient(circle, transparent 50px, #000 51px); mask:radial-gradient(circle, transparent 50px, #000 51px);
+}
+.knob .ptr{position:absolute;left:50%;top:9px;width:4px;height:30px;margin-left:-2px;border-radius:2px;background:var(--mark);box-shadow:0 0 4px rgba(237,229,205,.5)}
+.knob.drag{cursor:grabbing}
+.step{
+  appearance:none;border:0;cursor:pointer;width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(#2b312e,#151917);color:var(--mark);
+  font-family:var(--f-mono);font-size:24px;line-height:1;
+  box-shadow:0 3px 0 #0b0d0c, inset 0 1px 0 #3d4541;
+}
+.step:active{transform:translateY(2px);box-shadow:0 1px 0 #0b0d0c}
+.hint{font-size:12px;text-align:center;opacity:.75;margin:0}
+
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.btn{
+  appearance:none;cursor:pointer;border:2px solid var(--bezel);border-radius:5px;
+  background:linear-gradient(var(--panel-hi),var(--panel));color:var(--ink);
+  min-height:56px;padding:6px 4px;
+  font-family:var(--f-label);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  box-shadow:0 3px 0 var(--panel-lo);
+}
+.btn i{font-style:normal;font-weight:400;font-size:11px;opacity:.75}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--panel-lo)}
+.btn.hold{background:linear-gradient(#e86a55,var(--red));color:#1d0500;border-color:#5a1a10}
+.btn.hold[aria-pressed="true"]{background:linear-gradient(#f2b45c,var(--amber));color:#231300;border-color:#6a4304}
+
+.status{
+  margin-top:12px;background:var(--glass);border:2px solid var(--bezel);border-radius:3px;
+  color:var(--green);font-family:var(--f-mono);font-size:13px;padding:8px 10px;min-height:38px;
+  text-shadow:0 0 6px rgba(158,216,115,.4);overflow-wrap:anywhere;
+}
+.status::before{content:"> "}
+.status.err{color:var(--amber);text-shadow:0 0 6px rgba(242,161,49,.4)}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;margin-top:10px;padding:0 6px;font-family:var(--f-mono);font-size:11px;opacity:.65}
+
+@media (prefers-reduced-motion:reduce){.lamp,.key{transition:none}}
+</style></head><body>
+
+<main class="plate">
+  <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+
+  <header class="nameplate">
+    <h1>Пульт управления тренажёром<small>Trainer control panel · Elite Tuo</small></h1>
+    <div class="serial">ИЗД. ВТ-1А · FTMS 0x1826 · BLE</div>
+  </header>
+
+  <section class="lamps" aria-label="Status lamps">
+    <div class="lamp g" id="l-link">Связь<i>Link</i></div>
+    <div class="lamp a" id="l-sim">Имит.<i>Demo</i></div>
+    <div class="lamp g" id="l-erg">Ватт<i>ERG</i></div>
+    <div class="lamp g" id="l-res">Сопр.<i>Resist</i></div>
+    <div class="lamp g" id="l-slope">Уклон<i>Slope</i></div>
+    <div class="lamp r" id="l-hold">Пауза<i>Hold</i></div>
+  </section>
+
+  <div class="deck">
+    <section class="inst gauge">
+      <div class="cap"><div class="label">Мощность<span>Power · W</span></div><div class="label" style="text-align:right">Шкала ×100<span>Scale ×100 W</span></div></div>
+      <canvas id="gauge" aria-label="Analog power gauge"></canvas>
+    </section>
+
+    <section class="read" aria-label="Live readouts">
+      <div class="win"><div class="label">Каденс<span>Cadence rpm</span></div><div class="digits" id="d-cad" data-ghost="888">0</div></div>
+      <div class="win"><div class="label">Ср. 3 с<span>3 s avg W</span></div><div class="digits" id="d-avg" data-ghost="8888">0</div></div>
+      <div class="win"><div class="label">Скорость<span>Speed km/h</span></div><div class="digits" id="d-spd" data-ghost="88.8">0.0</div></div>
+      <div class="win"><div class="label">Время<span>Mission T+</span></div><div class="digits t" id="d-time" data-ghost="88:88:88">00:00:00</div></div>
+    </section>
+
+    <section class="command" aria-label="Controls">
+      <div class="modes" role="group" aria-label="Mode">
+        <button class="key" id="m-erg" data-mode="erg" aria-pressed="true">Ватт<i>ERG</i></button>
+        <button class="key" id="m-res" data-mode="res" aria-pressed="false">Сопр.<i>Resist</i></button>
+        <button class="key" id="m-slope" data-mode="slope" aria-pressed="false">Уклон<i>Slope</i></button>
+      </div>
+
+      <div class="setpoint">
+        <div class="label" id="sp-label">Задание · Target power</div>
+        <div class="digits" id="sp" data-ghost="888.8">150<span class="u">W</span></div>
+        <div class="range"><span id="sp-min">0</span><span id="sp-step">step 5 W</span><span id="sp-max">1000</span></div>
+      </div>
+
+      <div class="dial">
+        <button class="step" id="dec" aria-label="Decrease">−</button>
+        <div class="knob-wrap"><div class="knob" id="knob" tabindex="0" role="slider" aria-label="Setpoint knob" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="150"><div class="ptr"></div></div></div>
+        <button class="step" id="inc" aria-label="Increase">+</button>
+      </div>
+      <p class="hint">Turn the knob, scroll, or use ↑ ↓. Hold Shift for 5× steps.</p>
+
+      <div class="actions">
+        <button class="btn" id="b-connect">Подкл.<i>Connect</i></button>
+        <button class="btn" id="b-demo">Имит.<i>Demo</i></button>
+        <button class="btn hold" id="b-hold" aria-pressed="false">Пауза<i>Hold</i></button>
+      </div>
+    </section>
+
+    <section class="inst rec">
+      <div class="cap"><div class="label">Самописец<span>Power trace · last 120 s</span></div><div class="label" style="text-align:right"><span id="rec-legend">Target dashed</span></div></div>
+      <canvas id="rec" aria-label="Power strip chart"></canvas>
+    </section>
+  </div>
+
+  <div class="status" id="status" role="status">Demo running. Tap CONNECT to pair your Tuo.</div>
+  <div class="foot"><span>ERG 0x05 · RES 0x04 · SIM 0x11</span><span>Chrome on Android / Windows</span></div>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const MODES = {
+    erg:   { val:150, step:5,   min:0,   max:1000, unit:'W', dp:0, label:'Задание · Target power' },
+    res:   { val:30,  step:1,   min:0,   max:100,  unit:'%', dp:0, label:'Задание · Resistance level' },
+    slope: { val:2,   step:0.5, min:-10, max:20,   unit:'%', dp:1, label:'Задание · Road grade' }
+  };
+  let mode = 'erg', held = false, link = null; // link: 'ble' | 'demo' | null
+  let power = 0, cadence = 0, speed = 0, lastData = 0;
+  let elapsed = 0, needle = 0, knobAngle = 0;
+  const window3s = [];                 // {t, p}
+  const trace = [];                    // {p, tgt} at 2 Hz, 240 points
+  const TRACE_N = 240;
+
+  // ---------- UI ----------
+  function status(msg, err=false){ const s=$('status'); s.textContent=msg; s.classList.toggle('err',err); }
+  function lamp(id,on){ $(id).classList.toggle('on',!!on); }
+  function refreshLamps(){
+    lamp('l-link', link==='ble'); lamp('l-sim', link==='demo'); lamp('l-hold', held);
+    lamp('l-erg', mode==='erg'); lamp('l-res', mode==='res'); lamp('l-slope', mode==='slope');
+  }
+  function renderSetpoint(){
+    const m = MODES[mode];
+    $('sp').innerHTML = (m.dp ? m.val.toFixed(m.dp) : String(Math.round(m.val))) + '<span class="u">'+m.unit+'</span>';
+    $('sp-label').textContent = m.label;
+    $('sp-min').textContent = m.min + ' ' + m.unit;
+    $('sp-max').textContent = m.max + ' ' + m.unit;
+    $('sp-step').textContent = 'step ' + m.step + ' ' + m.unit;
+    const k=$('knob'); k.setAttribute('aria-valuemin',m.min); k.setAttribute('aria-valuemax',m.max); k.setAttribute('aria-valuenow',m.val);
+    $('rec-legend').textContent = mode==='erg' ? 'Target dashed' : 'Trace only';
+  }
+  function setMode(next){
+    mode = next;
+    document.querySelectorAll('.key').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode===mode));
+    renderSetpoint(); refreshLamps(); queueSend(true);
+  }
+  function nudge(steps){
+    const m = MODES[mode];
+    const v = Math.min(m.max, Math.max(m.min, Math.round((m.val + steps*m.step)/m.step)*m.step));
+    if (v === m.val) return;
+    m.val = +v.toFixed(2);
+    knobAngle += steps*15;
+    $('knob').style.transform = 'rotate('+knobAngle+'deg)';
+    renderSetpoint(); queueSend();
+  }
+  document.querySelectorAll('.key').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  $('inc').addEventListener('click', e => nudge(e.shiftKey?5:1));
+  $('dec').addEventListener('click', e => nudge(e.shiftKey?-5:-1));
+  const knob = $('knob');
+  knob.addEventListener('keydown', e => {
+    const big = e.shiftKey ? 5 : 1;
+    if (e.key==='ArrowUp'||e.key==='ArrowRight'){ nudge(big); e.preventDefault(); }
+    if (e.key==='ArrowDown'||e.key==='ArrowLeft'){ nudge(-big); e.preventDefault(); }
+    if (e.key==='PageUp'){ nudge(5); e.preventDefault(); }
+    if (e.key==='PageDown'){ nudge(-5); e.preventDefault(); }
+  });
+  knob.closest('.knob-wrap').addEventListener('wheel', e => { e.preventDefault(); nudge((e.deltaY<0?1:-1)*(e.shiftKey?5:1)); }, {passive:false});
+  // drag-to-turn: every 18° of hand rotation = one step
+  let dragAng = null, accum = 0;
+  const angOf = e => { const r=knob.getBoundingClientRect(); return Math.atan2(e.clientY-(r.top+r.height/2), e.clientX-(r.left+r.width/2))*180/Math.PI; };
+  knob.addEventListener('pointerdown', e => { knob.setPointerCapture(e.pointerId); dragAng=angOf(e); accum=0; knob.classList.add('drag'); });
+  knob.addEventListener('pointermove', e => {
+    if (dragAng===null) return;
+    const a = angOf(e); let d = a - dragAng; if (d>180) d-=360; if (d<-180) d+=360; dragAng = a; accum += d;
+    while (accum >= 18){ nudge(1); accum -= 18; }
+    while (accum <= -18){ nudge(-1); accum += 18; }
+  });
+  const endDrag = () => { dragAng=null; knob.classList.remove('drag'); };
+  knob.addEventListener('pointerup', endDrag); knob.addEventListener('pointercancel', endDrag);
+
+  $('b-hold').addEventListener('click', () => {
+    held = !held; $('b-hold').setAttribute('aria-pressed', held);
+    refreshLamps(); queueSend(true);
+    status(held ? 'Hold: resistance dropped to minimum. Press HOLD again to resume.' : 'Resumed at ' + describeSetpoint() + '.');
+  });
+  $('b-demo').addEventListener('click', () => { if (link==='ble') disconnect(); startDemo(); });
+  $('b-connect').addEventListener('click', connectBle);
+
+  function describeSetpoint(){ const m=MODES[mode]; return (m.dp?m.val.toFixed(m.dp):m.val)+' '+m.unit+' '+({erg:'ERG',res:'resistance',slope:'grade'})[mode]; }
+
+  // ---------- FTMS over Web Bluetooth ----------
+  const FTMS=0x1826, IBD=0x2ad2, CP=0x2ad9, RES_RANGE=0x2ad6;
+  let device=null, cp=null, resRange={min:0,max:200}, chain=Promise.resolve();
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const i16 = n => [n & 255, (n >> 8) & 255];
+  const OPS = {0x00:'request control',0x04:'set resistance',0x05:'set target power',0x07:'start',0x11:'set slope'};
+
+  function cpWrite(bytes){
+    chain = chain.then(async () => {
+      if (!cp) return;
+      const data = new Uint8Array(bytes);
+      if (cp.writeValueWithResponse) await cp.writeValueWithResponse(data); else await cp.writeValue(data);
+      await sleep(120);
+    }).catch(err => status('Write failed: '+err.message, true));
+    return chain;
+  }
+  function onCpIndication(v){
+    if (v.getUint8(0)!==0x80) return;
+    const op=v.getUint8(1), res=v.getUint8(2);
+    if (res===1) return;
+    const why = {2:'not supported',3:'value out of range',4:'operation failed',5:'control not granted'}[res]||('code '+res);
+    status('Trainer rejected '+(OPS[op]||('op 0x'+op.toString(16)))+': '+why+'.', true);
+    if (res===5) cpWrite([0x00]);
+  }
+  function parseIBD(v){
+    const f=v.getUint16(0,true); let o=2;
+    if (!(f&1)){ speed=v.getUint16(o,true)/100; o+=2; }
+    if (f&2) o+=2;
+    if (f&4){ cadence=v.getUint16(o,true)/2; o+=2; }
+    if (f&8) o+=2;
+    if (f&16) o+=3;
+    if (f&32) o+=2;
+    if (f&64){ power=v.getInt16(o,true); o+=2; }
+    lastData = performance.now();
+  }
+  function resRaw(pct){
+    const raw = resRange.min + (resRange.max-resRange.min)*pct/100;
+    return Math.max(0, Math.min(255, Math.round(raw)));
+  }
+  async function connectBle(){
+    if (!navigator.bluetooth){
+      status('This browser has no Bluetooth access. Open the panel file in Chrome on Android or Windows.', true); return;
+    }
+    try{
+      status('Searching for FTMS trainers… pick your Tuo in the list.');
+      device = await navigator.bluetooth.requestDevice({ filters:[{services:[FTMS]}], optionalServices:[FTMS] });
+      device.addEventListener('gattserverdisconnected', onDisconnected);
+      status('Connecting to '+(device.name||'trainer')+'…');
+      const server = await device.gatt.connect();
+      const svc = await server.getPrimaryService(FTMS);
+      const ibd = await svc.getCharacteristic(IBD);
+      ibd.addEventListener('characteristicvaluechanged', e=>parseIBD(e.target.value));
+      await ibd.startNotifications();
+      cp = await svc.getCharacteristic(CP);
+      cp.addEventListener('characteristicvaluechanged', e=>onCpIndication(e.target.value));
+      await cp.startNotifications();
+      try{ const r=await (await svc.getCharacteristic(RES_RANGE)).readValue(); resRange={min:r.getInt16(0,true), max:r.getInt16(2,true)}; }catch(_){}
+      stopDemo();
+      power=0; cadence=0; speed=0; elapsed=0; trace.length=0; window3s.length=0;
+      await cpWrite([0x00]); await cpWrite([0x07]);
+      link='ble'; refreshLamps(); wake();
+      status('Linked to '+(device.name||'trainer')+'. Holding '+describeSetpoint()+'.');
+      queueSend(true);
+    }catch(err){
+      if (err.name==='NotFoundError') status('No trainer selected. Make sure no other app is connected to the Tuo, then try again.', true);
+      else if (err.name==='SecurityError') status('Bluetooth is blocked in this view. Open the panel file directly in Chrome to connect.', true);
+      else status('Connection failed: '+err.message, true);
+    }
+  }
+  function onDisconnected(){ cp=null; if (link==='ble'){ link=null; refreshLamps(); status('Trainer disconnected. Tap CONNECT to relink.', true); } }
+  function disconnect(){ try{ device && device.gatt.connected && device.gatt.disconnect(); }catch(_){} cp=null; link=null; refreshLamps(); }
+
+  let sendTimer=null;
+  function queueSend(now=false){ clearTimeout(sendTimer); sendTimer=setTimeout(sendSetpoint, now?0:220); }
+  function sendSetpoint(){
+    if (link!=='ble') return;
+    if (held){ cpWrite([0x04, resRaw(0)]); return; }
+    const v = MODES[mode].val;
+    if (mode==='erg') cpWrite([0x05, ...i16(Math.round(v))]);
+    else if (mode==='res') cpWrite([0x04, resRaw(v)]);
+    else cpWrite([0x11, ...i16(0), ...i16(Math.round(v*100)), 40, 51]); // wind 0, grade, Crr .004, CwA .51
+  }
+
+  // ---------- demo rider ----------
+  let demoTimer=null, cadT=0;
+  function startDemo(){
+    stopDemo(); link='demo'; refreshLamps();
+    status('Demo running: simulated rider, nothing is sent to a trainer. Tap CONNECT to pair your Tuo.');
+    demoTimer=setInterval(() => {
+      cadT += 0.25;
+      const cadTarget = held ? 62 : 88 + 4*Math.sin(cadT/9);
+      cadence += (cadTarget-cadence)*0.12 + (Math.random()-.5)*1.4;
+      const m=MODES[mode]; let pt;
+      if (held) pt = 35;
+      else if (mode==='erg') pt = m.val;
+      else if (mode==='res') pt = (22 + m.val*3.3) * (cadence/88);
+      else pt = Math.max(25, 135 + m.val*27);
+      power += (pt-power)*(mode==='erg'?0.22:0.15) + (Math.random()-.5)*12;
+      power = Math.max(0,power);
+      const grade = mode==='slope' && !held ? Math.max(0,m.val) : 0;
+      speed = 3.6*Math.cbrt(power/0.19)/(1+grade*0.22);
+      lastData = performance.now();
+    }, 250);
+  }
+  function stopDemo(){ clearInterval(demoTimer); demoTimer=null; }
+
+  let wakeLock=null;
+  async function wake(){ try{ if ('wakeLock' in navigator && !wakeLock){ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>wakeLock=null);} }catch(_){} }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState==='visible' && link) wake(); });
+
+  // ---------- canvases ----------
+  const gc=$('gauge'), rc=$('rec'); let gctx, rctx;
+  function size(){
+    const d=Math.min(window.devicePixelRatio||1, 2);
+    for (const c of [gc,rc]){ c.width=Math.round(c.clientWidth*d); c.height=Math.round(c.clientHeight*d); }
+    gctx=gc.getContext('2d'); rctx=rc.getContext('2d');
+    gctx.setTransform(d,0,0,d,0,0); rctx.setTransform(d,0,0,d,0,0);
+  }
+  addEventListener('resize', size);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const C = {};
+  function loadColors(){ for (const k of ['face','mark','amber','green','red','bezel','glass']) C[k]=css('--'+k); }
+
+  const GMAX=800, A0=Math.PI*0.75, SWEEP=Math.PI*1.5;
+  const ang = w => A0 + SWEEP*Math.min(1,Math.max(0,w/GMAX));
+  function drawGauge(){
+    const w=gc.clientWidth, h=gc.clientHeight, cx=w/2, cy=h/2, R=Math.min(w,h)/2-4, g=gctx;
+    g.clearRect(0,0,w,h);
+    // face
+    const bg=g.createRadialGradient(cx,cy*0.8,R*0.1,cx,cy,R);
+    bg.addColorStop(0,'#262c29'); bg.addColorStop(1,C.face);
+    g.fillStyle=bg; g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.fill();
+    g.strokeStyle='#323a36'; g.lineWidth=2; g.stroke();
+    // red zone 600-800
+    g.strokeStyle=C.red; g.lineWidth=R*0.05; g.beginPath(); g.arc(cx,cy,R*0.86,ang(600),ang(800)); g.stroke();
+    // ticks
+    g.strokeStyle=C.mark; g.fillStyle=C.mark; g.lineCap='butt';
+    for (let v=0; v<=GMAX; v+=20){
+      const a=ang(v), major=v%100===0, mid=v%50===0;
+      const r1=R*0.9, r2=R*(major?0.76:mid?0.81:0.84);
+      g.lineWidth=major?3:mid?2:1.2;
+      g.beginPath(); g.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1); g.lineTo(cx+Math.cos(a)*r2, cy+Math.sin(a)*r2); g.stroke();
+      if (major){
+        g.font='700 '+Math.round(R*0.14)+'px "PT Sans Narrow", Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+        g.fillText(String(v/100), cx+Math.cos(a)*R*0.63, cy+Math.sin(a)*R*0.63);
+      }
+    }
+    // legends
+    g.font='700 '+Math.round(R*0.085)+'px "PT Sans Narrow", Arial, sans-serif'; g.fillStyle=C.mark; g.globalAlpha=.8;
+    g.fillText('ВАТТ  ·  W', cx, cy-R*0.32);
+    g.font=Math.round(R*0.065)+'px "PT Mono", monospace'; g.globalAlpha=.5;
+    g.fillText('×100', cx, cy-R*0.2);
+    g.globalAlpha=1;
+    // digital sub-readout
+    g.fillStyle=C.glass; const bw=R*0.56, bh=R*0.24; g.fillRect(cx-bw/2, cy+R*0.36, bw, bh);
+    g.fillStyle=C.amber; g.font=Math.round(R*0.19)+'px "PT Mono", monospace'; g.textAlign='right';
+    g.shadowColor=C.amber; g.shadowBlur=8; g.fillText(String(Math.round(Math.max(0,power))), cx+bw/2-R*0.06, cy+R*0.36+bh/2+1); g.shadowBlur=0;
+    // ERG target chevron
+    if (mode==='erg' && link){
+      const a=ang(MODES.erg.val), r=R*0.93;
+      g.fillStyle=C.amber; g.beginPath();
+      g.moveTo(cx+Math.cos(a)*r, cy+Math.sin(a)*r);
+      g.lineTo(cx+Math.cos(a-0.05)*R, cy+Math.sin(a-0.05)*R);
+      g.lineTo(cx+Math.cos(a+0.05)*R, cy+Math.sin(a+0.05)*R); g.closePath(); g.fill();
+    }
+    // needle
+    const a=ang(needle);
+    g.save(); g.translate(cx,cy); g.rotate(a);
+    g.shadowColor='rgba(0,0,0,.6)'; g.shadowBlur=6; g.shadowOffsetY=3;
+    g.fillStyle=C.mark; g.beginPath(); g.moveTo(-R*0.16,-3); g.lineTo(R*0.86,-1); g.lineTo(R*0.88,0); g.lineTo(R*0.86,1); g.lineTo(-R*0.16,3); g.closePath(); g.fill();
+    g.fillStyle=C.red; g.fillRect(R*0.7,-1.6,R*0.17,3.2);
+    g.restore();
+    g.fillStyle='#0d0f0e'; g.beginPath(); g.arc(cx,cy,R*0.07,0,Math.PI*2); g.fill();
+    g.strokeStyle='#3a423e'; g.lineWidth=2; g.stroke();
+  }
+
+  function drawRec(){
+    const w=rc.clientWidth, h=rc.clientHeight, g=rctx;
+    g.fillStyle=C.glass; g.fillRect(0,0,w,h);
+    const top=Math.max(400, ...trace.map(s=>s.p||0), ...(mode==='erg'?[MODES.erg.val]:[]));
+    const yMax=Math.ceil(top*1.1/100)*100, padL=34, padB=16, pw=w-padL-6, ph=h-padB-8;
+    const y=v=>8+ph-(v/yMax)*ph, x=i=>padL+(i/(TRACE_N-1))*pw;
+    g.font='11px "PT Mono", monospace'; g.textAlign='right'; g.textBaseline='middle';
+    const stepY = yMax<=500?100:200;
+    for (let v=0; v<=yMax; v+=stepY){
+      g.strokeStyle='rgba(158,216,115,.12)'; g.lineWidth=1; g.beginPath(); g.moveTo(padL,y(v)); g.lineTo(w-6,y(v)); g.stroke();
+      g.fillStyle='rgba(237,229,205,.55)'; g.fillText(v, padL-5, y(v));
+    }
+    g.textAlign='center'; g.textBaseline='alphabetic';
+    for (let s=0; s<=120; s+=30){
+      const xi=x(TRACE_N-1 - s*2);
+      g.strokeStyle='rgba(158,216,115,.12)'; g.beginPath(); g.moveTo(xi,8); g.lineTo(xi,8+ph); g.stroke();
+      g.fillStyle='rgba(237,229,205,.55)'; g.fillText(s?('−'+s+'s'):'now', Math.min(xi, w-18), h-3);
+    }
+    const off = TRACE_N - trace.length;
+    // target
+    g.setLineDash([6,5]); g.strokeStyle=C.amber; g.lineWidth=1.5; g.beginPath(); let pen=false;
+    trace.forEach((s,i)=>{ if (s.tgt==null){pen=false;return;} const X=x(i+off),Y=y(s.tgt); pen?g.lineTo(X,Y):g.moveTo(X,Y); pen=true; });
+    g.stroke(); g.setLineDash([]);
+    // power area + line
+    if (trace.length>1){
+      g.beginPath(); trace.forEach((s,i)=>{ const X=x(i+off),Y=y(s.p); i?g.lineTo(X,Y):g.moveTo(X,Y); });
+      g.lineTo(x(TRACE_N-1), y(0)); g.lineTo(x(off), y(0)); g.closePath();
+      g.fillStyle='rgba(158,216,115,.12)'; g.fill();
+      g.beginPath(); trace.forEach((s,i)=>{ const X=x(i+off),Y=y(s.p); i?g.lineTo(X,Y):g.moveTo(X,Y); });
+      g.strokeStyle=C.green; g.lineWidth=2; g.shadowColor=C.green; g.shadowBlur=6; g.stroke(); g.shadowBlur=0;
+      const last=trace[trace.length-1]; g.fillStyle=C.green; g.beginPath(); g.arc(x(TRACE_N-1), y(last.p), 3.5, 0, Math.PI*2); g.fill();
+    }
+  }
+
+  // ---------- main loop ----------
+  const fmtT = s => [s/3600|0, (s/60|0)%60, s%60|0].map(n=>String(n).padStart(2,'0')).join(':');
+  let prev=performance.now(), sampleAcc=0;
+  function frame(now){
+    const dt=Math.min(0.25,(now-prev)/1000); prev=now;
+    const live = link && now-lastData < 3000;
+    const p = live ? power : 0;
+    window3s.push({t:now,p}); while (window3s.length && now-window3s[0].t>3000) window3s.shift();
+    const avg = window3s.reduce((a,s)=>a+s.p,0)/Math.max(1,window3s.length);
+    needle = reduce ? p : needle + (p-needle)*Math.min(1,dt*6);
+    if (live && !held && cadence>20) elapsed += dt;
+    sampleAcc += dt;
+    if (sampleAcc>=0.5){ sampleAcc=0; if (link){ trace.push({p:Math.max(0,p), tgt:(mode==='erg'&&!held)?MODES.erg.val:null}); if (trace.length>TRACE_N) trace.shift(); } }
+    $('d-cad').textContent = live ? Math.round(cadence) : 0;
+    $('d-avg').textContent = Math.round(avg);
+    $('d-spd').textContent = (live?speed:0).toFixed(1);
+    $('d-time').textContent = fmtT(elapsed);
+    drawGauge(); drawRec();
+    requestAnimationFrame(frame);
+  }
+
+  function boot(){ loadColors(); size(); renderSetpoint(); startDemo(); requestAnimationFrame(t=>{prev=t; requestAnimationFrame(frame);}); }
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot);
+})();
+</script>
+</body></html>

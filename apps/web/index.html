@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B0C0E">
+  <title>VT-1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <header>
+    <span class="brand">VT-1</span>
+    <button id="status" class="chip" type="button">NO TRAINER</button>
+  </header>
+  <main>
+    <div class="seg" role="group" aria-label="Mode">
+      <button type="button" data-mode="erg" aria-pressed="true">ERG</button>
+      <button type="button" data-mode="res" aria-pressed="false">RES</button>
+      <button type="button" data-mode="slope" aria-pressed="false">SLOPE</button>
+    </div>
+    <div class="ring">
+      <svg viewBox="0 0 320 320" aria-hidden="true">
+        <circle class="track" cx="160" cy="160" r="148" stroke-dasharray="697.43 929.91" transform="rotate(135 160 160)"/>
+        <circle id="arc" class="arc" cx="160" cy="160" r="148" stroke-dasharray="0 929.91" transform="rotate(135 160 160)"/>
+        <circle id="marker" class="marker" cx="0" cy="0" r="0"/>
+      </svg>
+      <div class="center">
+        <span id="label" class="mono dim">TARGET</span>
+        <span id="value" class="big">—</span>
+        <span id="unit" class="dim">watts</span>
+        <span id="live" class="mono live"></span>
+      </div>
+    </div>
+    <div class="readouts">
+      <div><span class="mono dim">POWER</span><span id="power">—</span></div>
+      <div><span class="mono dim">CADENCE</span><span id="cadence">—</span></div>
+      <div><span class="mono dim">TIME</span><span id="time">00:00</span></div>
+    </div>
+    <div id="controls" class="controls" hidden>
+      <div class="row"><span id="step" class="mono dim">STEP ±5 W</span><button id="hold" class="chip" type="button" aria-pressed="false">HOLD</button></div>
+      <div class="row">
+        <button id="dec" class="stepbtn" type="button" aria-label="Decrease">−</button>
+        <button id="inc" class="stepbtn" type="button" aria-label="Increase">+</button>
+      </div>
+    </div>
+    <div id="connect" class="connect">
+      <button id="connectBtn" class="primary" type="button">Connect trainer</button>
+      <button id="demoBtn" class="ghost" type="button">Try demo mode</button>
+      <p id="note" class="dim small">Wake the trainer by pedalling. Works in Chrome and Edge on desktop, and Chrome on Android.</p>
+    </div>
+  </main>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

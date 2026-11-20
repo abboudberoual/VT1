@@ -1,0 +1,24 @@
+{
+  "name": "vt1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal smart trainer controller: ERG, resistance and slope over Bluetooth FTMS.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @vt1/web",
+    "build": "npm run build -w @vt1/web",
+    "test": "npm test -w @vt1/core",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/web-bluetooth": "^0.0.22",
+    "typescript": "5.8",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  }
+}
